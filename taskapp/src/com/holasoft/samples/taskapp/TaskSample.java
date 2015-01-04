@@ -2,6 +2,11 @@ package com.holasoft.samples.taskapp;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
@@ -31,6 +36,32 @@ public class TaskSample {
 		
 	}
 	
+	public static class MyRunnableTask implements Runnable {
+		@Override
+		public void run() {
+			// do task!!
+		}
+	}
+	public static class MyCallableTask implements Callable<String> {
+		@Override
+		public String call() throws Exception {
+			// do task!!
+			return null;
+		}		
+	}
+	public static class MyFutureTask extends FutureTask<String> {
+
+		public MyFutureTask(Callable<String> callable) {
+			super(callable); 
+		}
+		
+		@Override
+		protected void done() { 
+			// get result by calling get()
+			// do some post execution after task completed, such as change state or fork another task
+		}
+	}
+	
 	public static void TestThreadPool() throws MalformedURLException {
 		
 		MyThreadFactory threadFactory = new MyThreadFactory();
@@ -46,7 +77,19 @@ public class TaskSample {
 																0L, TimeUnit.MILLISECONDS,
 																new LinkedBlockingQueue<Runnable>(),
 																threadFactory);
-								
+		// Executors
+		ExecutorService executor3 = Executors.newFixedThreadPool(5);
+		
+		
+		// Runnable Execution
+		executor.execute(new MyRunnableTask());
+		Future<?> f1 = executor.submit(new MyRunnableTask());
+		// Callable Execution
+		Future<String> f2 = executor.submit(new MyCallableTask());
+		// Future Task Execution
+		executor.execute(new MyFutureTask(new MyCallableTask()));
+		
+		// AsyncTask Execution
 		DownloadAsyncTask asyncTask = new DownloadAsyncTask();
 		URL url = new URL("http://www.google.com");
 		asyncTask.execute(url); // execute asyncTask
