@@ -14,16 +14,49 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 
 public class TaskSample {
 	
 	public static void TestThread() {
+		
+		final Handler mHandler = new Handler();
+		
 		Thread thread = new Thread(new Runnable(){
 			@Override
 			public void run() {
 				// do task!!
+				Message m = new Message();
+				m.what = 123;
+				mHandler.sendMessage(m); // send progress or message
+				mHandler.post(new Runnable() {
+					@Override
+					public void run() {
+						// update UI view, ...etc
+					}});
 			}});
 		thread.start();
+		
+		
+	}
+	
+	public static void TestHandlerThread() {
+		
+		HandlerThread mHandlerThread = new HandlerThread("Worker");
+		mHandlerThread.start();
+				
+		Handler mHandler = new Handler(mHandlerThread.getLooper());
+		Message m = new Message();
+		m.what = 123;
+		mHandler.sendMessage(m);
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				// do something!!!
+		}});
+		
 	}
 	
 	
@@ -62,6 +95,17 @@ public class TaskSample {
 		}
 	}
 	
+	public static void TestFuture() {
+		
+		MyCallableTask task = new MyCallableTask();
+		FutureTask<String> futureTask = new FutureTask<String>(task);
+		
+		ExecutorService executor = Executors.newFixedThreadPool(5);
+		executor.execute(futureTask);
+		
+	}
+	
+	
 	public static void TestThreadPool() throws MalformedURLException {
 		
 		MyThreadFactory threadFactory = new MyThreadFactory();
@@ -72,11 +116,11 @@ public class TaskSample {
 														new SynchronousQueue<Runnable>(),
 														threadFactory);
 		// newFixedThreadPool
-				int nThreads = 5;
-				ThreadPoolExecutor executor2 = new ThreadPoolExecutor(nThreads, nThreads,
-																0L, TimeUnit.MILLISECONDS,
-																new LinkedBlockingQueue<Runnable>(),
-																threadFactory);
+		int nThreads = 5;
+		ThreadPoolExecutor executor2 = new ThreadPoolExecutor(nThreads, nThreads,
+														0L, TimeUnit.MILLISECONDS,
+														new LinkedBlockingQueue<Runnable>(),
+														threadFactory);
 		// Executors
 		ExecutorService executor3 = Executors.newFixedThreadPool(5);
 		
